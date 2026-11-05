@@ -28,6 +28,17 @@ except Exception as exc:
 
 # Spark 4.0.0 matches the connector coordinate below. Do not install the
 # [connect] extra: this project uses local PySpark, not Spark Connect.
+# Remove both distributions first because the unrelated PyPI package named
+# "kafka" can collide with kafka-python (both install a top-level `kafka` module).
+# kafka-python 2.0.2 has a known missing kafka.vendor.six.moves import; use
+# the maintained 2.2.x line, which supports Python 3.13 and retains this script's
+# synchronous Producer/Admin APIs.
+subprocess.run(
+    [sys.executable, "-m", "pip", "uninstall", "-y", "kafka", "kafka-python"],
+    check=False,
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
 subprocess.check_call(
     [
         sys.executable,
@@ -35,11 +46,21 @@ subprocess.check_call(
         "pip",
         "install",
         "-q",
+        "--no-cache-dir",
         "--upgrade",
         "pyspark==4.0.0",
-        "kafka-python==2.0.2",
+        "kafka-python==2.2.19",
         "scikit-learn>=1.3,<2.0",
     ]
+)
+# Fail early with a clear message if the Python client import is still broken.
+subprocess.run(
+    [
+        sys.executable,
+        "-c",
+        "from kafka import KafkaProducer; from kafka.admin import KafkaAdminClient, NewTopic; print('kafka-python client import OK')",
+    ],
+    check=True,
 )
 
 # -------------------- 1. Find attached Olist input --------------------

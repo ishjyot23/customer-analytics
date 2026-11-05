@@ -90,3 +90,7 @@ For a selected customer, the dashboard finds their most-purchased product catego
 ## Dataset attribution and licence
 
 Dataset: Olist Brazilian E-Commerce Public Dataset. Respect the dataset's CC BY-NC-SA 4.0 licence and attribution/non-commercial/share-alike conditions: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+
+### Kaggle Kafka client compatibility
+
+The Kaggle pipeline removes conflicting `kafka` / `kafka-python` distributions before installing `kafka-python==2.2.19`. This avoids the `kafka.vendor.six.moves` import failure found with `kafka-python==2.0.2` on newer Python runtimes. The script uses the matching Spark 4.0.0 Kafka connector. If a previous run left the local Kafka broker running, the pipeline detects and reuses it.
